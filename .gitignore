@@ -1,7 +1,19 @@
-/target
-/test_out
+/target/
+/test_out/
 
+# Custom outputs
 /test.b
-/out
-/out.temp.asm
-/out.temp.o
+/out.*
+/out*.temp.o
+/out*.temp.asm
+
+# VSCode
+/.vscode/
+
+# OS/Editor
+*.swp
+*.swo
+*.bak
+*.tmp
+*.DS_Store
+Thumbs.db
