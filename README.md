@@ -1,10 +1,10 @@
 # Brainfuck x86-64 Compiler
-This project is a Brainfuck compiler written in Rust. It translates Brainfuck source code into x86-64 assembly for UNIX systems, assembles and links it to produce a native executable.
+A [nice](http://www.muppetlabs.com/~breadbox/bf/standards.html) Brainfuck compiler written in Rust, translating Brainfuck source code into optimized x86-64 assembly for UNIX and Windows systems. Automatically assembles and links the generated assembly to produce a native executable, or outputs assembly code directly for manual use.
 
 ## Features
 - Converts Brainfuck code to x86-64 assembly
 - Supports custom tape size
-- Combines repeated Brainfuck instructions for optimization
+- Combines repeated instructions for optimization
 - Syntax checking for matching loops
 
 ## Requirements
@@ -40,7 +40,7 @@ there is no support for `#` nor `!`.
 - Empty loops are allowed and do nothing but are not optimized away
 - Cells are 8-bit and wrap on overflow/underflow
 - Pointer will NOT wrap on overflow/underflow (undefined behavior)
-- Input and output are done using system calls (Unix x86-64), this may or may not be expanded in the future.
+- Input and output are done using system calls on UNIX, and with the C runtime on windows
 
 
 ## Usage
@@ -66,11 +66,6 @@ cargo build --release
 ```
 ./target/release/bf hello.b -o hello -v
 ```
-
-## Project Structure
-- `src/lexer.rs` : Tokenizes Brainfuck source code
-- `src/compiler.rs` : Converts tokens to x86-64 assembly
-- `src/main.rs` : CLI and orchestration
 
 ## Testing
 Run unit tests:
