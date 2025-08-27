@@ -2,7 +2,6 @@ mod lexer;
 mod asm;
 mod compiler;
 
-use lexer::BFToken;
 use lexer::BFLexer;
 use compiler::BFCompiler;
 use std::process::Command;
@@ -35,8 +34,8 @@ struct Args {
     tape_size: usize,
 
     /// Target architecture: unix, win64
-    #[arg(short = 'f', long = "format", default_value = "unix")]
-    target_arch: String,
+    #[arg(short = 'f', long = "format")]
+    target_arch: Option<String>,
 }
 
 fn is_nasm_installed() -> bool {
@@ -65,7 +64,19 @@ fn main() {
         std::process::exit(1);
     }
 
-    let args = Args::parse();
+    let mut args = Args::parse();
+
+    // Auto-detect OS if target_arch not specified
+    let detected_arch = if let Some(ref arch) = args.target_arch {
+        arch.clone()
+    } else {
+        if cfg!(windows) {
+            "win64".to_string()
+        } else {
+            "unix".to_string()
+        }
+    };
+    let target_arch = detected_arch;
 
     let source = match std::fs::read_to_string(&args.filename) {
         Ok(s) => s,
@@ -84,7 +95,7 @@ fn main() {
             std::process::exit(1);
         }
     }
-    let compiler = BFCompiler::new(tokens, args.tape_size, &args.target_arch, args.verbose);
+    let compiler = BFCompiler::new(tokens, args.tape_size, &target_arch, args.verbose);
     let asm = compiler.compile();
     let base = if args.output.is_empty() {
         format!("{}", &args.filename)
@@ -103,7 +114,7 @@ fn main() {
         println!("Assembly code written to {}", nfile);
     }
 
-    match args.target_arch.as_str() {
+    match target_arch.as_str() {
         "unix" => {
             if args.only_asm {
                 if args.verbose {
@@ -136,11 +147,39 @@ fn main() {
             }
         },
         "win64" => {
-            eprintln!("Windows x64 target not yet supported.");
-            std::process::exit(1);
+            if args.only_asm {
+                if args.verbose {
+                    println!("Only assembly output requested (-A). Skipping object and executable generation.");
+                }
+            } else {
+                let nasm_status = Command::new("nasm")
+                    .args(&["-f", "win64", &nfile, "-o", &output_obj])
+                    .status()
+                    .expect("Failed to execute NASM");
+                if !nasm_status.success() {
+                    eprintln!("Error: NASM failed to assemble the code for win64.");
+                    std::process::exit(1);
+                }
+                if args.verbose {
+                    println!("Object file written to {}", output_obj);
+                }
+
+                // Link with ld for win64
+                let ld_status = Command::new("ld")
+                    .args(&[&output_obj, "-o", &output_exe, "-e", "main", "-subsystem", "console", "-lmsvcrt"])
+                    .status()
+                    .expect("Failed to execute ld");
+                if !ld_status.success() {
+                    eprintln!("Error: ld failed to link the object file for win64. Ensure ld is installed and in PATH.");
+                    std::process::exit(1);
+                }
+                if args.verbose {
+                    println!("Executable file written to {} (ld)", output_exe);
+                }
+            }
         },
         _ => {
-            eprintln!("Unknown target architecture: {}", args.target_arch);
+            eprintln!("Unknown target architecture: {:?}", args.target_arch);
             std::process::exit(1);
         }
     }
