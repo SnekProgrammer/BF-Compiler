@@ -27,7 +27,7 @@ This project is a Brainfuck compiler written in Rust. It translates Brainfuck so
 - `]` : Jump back to the command after the matching `[` if the byte at the data pointer is non-zero
 
 A number following any of the commands excluding `[` and `]` indicates repetition of that command. For example, `+5` is equivalent to `+++++`.
-`+0` will do nothing, however it will result in a 'useless' instruction in the assembly (`add byte [rsi], 0 `).
+`+0` will do nothing, however it will result in a 'useless' instruction in the assembly (`add byte [rsi], 0`).
 
 A number that is not directly after a command is ignored. For example, `5+` is equivalent to `+`, and `+ 5` likewise.
 The same follows for any non-command character, meaning `+72. Hello World!` is equivalent to `+72.`.
