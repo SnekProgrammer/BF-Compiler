@@ -1,4 +1,5 @@
 mod lexer;
+mod asm;
 mod compiler;
 
 use lexer::BFToken;
@@ -32,6 +33,10 @@ struct Args {
     /// Tape size in bytes
     #[arg(short = 't', long = "tape-size", default_value_t = 30000)]
     tape_size: usize,
+
+    /// Target architecture: unix, win64
+    #[arg(short = 'f', long = "format", default_value = "unix")]
+    target_arch: String,
 }
 
 fn is_nasm_installed() -> bool {
@@ -79,8 +84,8 @@ fn main() {
             std::process::exit(1);
         }
     }
-    let compiler = BFCompiler::new(tokens, args.tape_size);
-    let asm = compiler.compile(true);
+    let compiler = BFCompiler::new(tokens, args.tape_size, &args.target_arch, args.verbose);
+    let asm = compiler.compile();
     let base = if args.output.is_empty() {
         format!("{}", &args.filename)
     } else {
@@ -98,37 +103,53 @@ fn main() {
         println!("Assembly code written to {}", nfile);
     }
 
-    if !args.only_asm {
-        let nasm_status = Command::new("nasm")
-            .args(&["-f", "elf64", &nfile, "-o", &output_obj])
-            .status()
-            .expect("Failed to execute NASM");
-        if !nasm_status.success() {
-            eprintln!("Error: NASM failed to assemble the code.");
-            std::process::exit(1);
-        }
-        if args.verbose {
-            println!("Object file written to {}", output_obj);
-        }
+    match args.target_arch.as_str() {
+        "unix" => {
+            if args.only_asm {
+                if args.verbose {
+                    println!("Only assembly output requested (-A). Skipping object and executable generation.");
+                }
+            } else {
+                let nasm_status = Command::new("nasm")
+                    .args(&["-f", "elf64", &nfile, "-o", &output_obj])
+                    .status()
+                    .expect("Failed to execute NASM");
+                if !nasm_status.success() {
+                    eprintln!("Error: NASM failed to assemble the code.");
+                    std::process::exit(1);
+                }
+                if args.verbose {
+                    println!("Object file written to {}", output_obj);
+                }
 
-        let ld_status = Command::new("ld")
-            .args(&[&output_obj, "-o", &output_exe])
-            .status()
-            .expect("Failed to execute ld");
-        if !ld_status.success() {
-            eprintln!("Error: ld failed to link the object file.");
-            std::process::exit(1);
-        }
-        if args.verbose {
-            println!("Executable file written to {}", output_exe);
-        }
-
-        if !args.keep_asm {
-            std::fs::remove_file(&nfile).expect("Failed to remove temporary assembly file");
-            std::fs::remove_file(&output_obj).expect("Failed to remove temporary object file");
-            if args.verbose {
-                println!("Temporary files removed.");
+                let ld_status = Command::new("ld")
+                    .args(&[&output_obj, "-o", &output_exe])
+                    .status()
+                    .expect("Failed to execute ld");
+                if !ld_status.success() {
+                    eprintln!("Error: ld failed to link the object file.");
+                    std::process::exit(1);
+                }
+                if args.verbose {
+                    println!("Executable file written to {}", output_exe);
+                }
             }
+        },
+        "win64" => {
+            eprintln!("Windows x64 target not yet supported.");
+            std::process::exit(1);
+        },
+        _ => {
+            eprintln!("Unknown target architecture: {}", args.target_arch);
+            std::process::exit(1);
+        }
+    }
+
+    if !args.keep_asm && !args.only_asm {
+        std::fs::remove_file(&nfile).expect("Failed to remove temporary assembly file");
+        std::fs::remove_file(&output_obj).expect("Failed to remove temporary object file");
+        if args.verbose {
+            println!("Temporary files removed.");
         }
     }
 }
