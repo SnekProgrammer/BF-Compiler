@@ -1,5 +1,4 @@
 # Brainfuck x86-64 Compiler
-
 This project is a Brainfuck compiler written in Rust. It translates Brainfuck source code into x86-64 assembly for UNIX systems, assembles and links it to produce a native executable.
 
 ## Features
@@ -7,13 +6,11 @@ This project is a Brainfuck compiler written in Rust. It translates Brainfuck so
 - Supports custom tape size
 - Combines repeated Brainfuck instructions for optimization
 - Syntax checking for matching loops
-- Command-line interface with options for verbose output, keeping intermediate files, and custom output names
-- Unit tests for lexer and compiler
 
 ## Requirements
 - Rust (stable)
-- NASM (Netwide Assembler)
-- ld (GNU linker)
+- NASM (Netwide Assembler) (For auto-assembly)
+- ld (GNU linker) (For auto-assembly)
 
 
 ## Syntax
