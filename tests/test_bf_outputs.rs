@@ -7,6 +7,10 @@ use std::path::Path;
 fn test_bf_compiler_outputs() {
     let target_arch = if cfg!(target_os = "windows") { "win64" } else { "unix" };
     let test_out_dir = Path::new("test_out");
+    // Ensure test_out directory exists
+    if !test_out_dir.exists() {
+        fs::create_dir(test_out_dir).expect("Failed to create test_out directory");
+    }
     // Clean up before
     if test_out_dir.exists() {
         for entry in fs::read_dir(test_out_dir).expect("Failed to read test_out directory") {
