@@ -55,16 +55,19 @@ fn is_ld_installed() -> bool {
 }
 
 fn main() {
-    if !is_nasm_installed() {
-        eprintln!("Error: NASM is not installed or not found in PATH.");
-        std::process::exit(1);
-    }
-    if !is_ld_installed() {
-        eprintln!("Error: ld is not installed or not found in PATH.");
-        std::process::exit(1);
-    }
+    let args = Args::parse();
 
-    let mut args = Args::parse();
+    // Detect NASM and ld at start, but only if compilation will be needed
+    if !args.only_asm {
+        if !is_nasm_installed() {
+            eprintln!("Error: NASM is not installed or not found in PATH.");
+            std::process::exit(1);
+        }
+        if !is_ld_installed() {
+            eprintln!("Error: ld is not installed or not found in PATH.");
+            std::process::exit(1);
+        }
+    }
 
     // Auto-detect OS if target_arch not specified
     let detected_arch = if let Some(ref arch) = args.target_arch {
@@ -121,6 +124,14 @@ fn main() {
                     println!("Only assembly output requested (-A). Skipping object and executable generation.");
                 }
             } else {
+                if !is_nasm_installed() {
+                    eprintln!("Error: NASM is not installed or not found in PATH.");
+                    std::process::exit(1);
+                }
+                if !is_ld_installed() {
+                    eprintln!("Error: ld is not installed or not found in PATH.");
+                    std::process::exit(1);
+                }
                 let nasm_status = Command::new("nasm")
                     .args(&["-f", "elf64", &nfile, "-o", &output_obj])
                     .status()
@@ -152,6 +163,14 @@ fn main() {
                     println!("Only assembly output requested (-A). Skipping object and executable generation.");
                 }
             } else {
+                if !is_nasm_installed() {
+                    eprintln!("Error: NASM is not installed or not found in PATH.");
+                    std::process::exit(1);
+                }
+                if !is_ld_installed() {
+                    eprintln!("Error: ld is not installed or not found in PATH.");
+                    std::process::exit(1);
+                }
                 let nasm_status = Command::new("nasm")
                     .args(&["-f", "win64", &nfile, "-o", &output_obj])
                     .status()
