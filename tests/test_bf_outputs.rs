@@ -56,7 +56,7 @@ fn test_bf_compiler_outputs() {
                         Ok(output.stdout)
                     })
                     .expect("Failed to run executable");
-                assert_eq!(output, expected, "Output mismatch for {}", bf_file.display());
+                assert!(output == expected, "Output mismatch for {}\nExpected (bytes): {:?}\nActual (bytes): {:?}\nExpected (chars): {}\nActual (chars): {}", bf_file.display(), expected, output, String::from_utf8_lossy(&expected), String::from_utf8_lossy(&output));
             }
         }
     }

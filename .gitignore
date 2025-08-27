@@ -1,3 +1,7 @@
 /target
 prog.b
 /test_out
+
+out
+out.temp.asm
+out.temp.o
