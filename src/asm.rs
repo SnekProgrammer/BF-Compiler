@@ -288,3 +288,108 @@ impl Assembler {
     self.asm
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_header_unix_pretty() {
+        let asm = Assembler::new("unix", true, 100).header().build();
+        assert!(asm.contains("; Brainfuck x86-64 Assembly (UNIX)"));
+        assert!(asm.contains("tape resb 100"));
+        assert!(asm.contains("mov rsi, tape"));
+    }
+
+    #[test]
+    fn test_header_win64_pretty() {
+        let asm = Assembler::new("win64", true, 200).header().build();
+        assert!(asm.contains("; Brainfuck x86-64 Assembly (Windows)"));
+        assert!(asm.contains("tape resb 200"));
+        assert!(asm.contains("mov rsi, tape"));
+    }
+
+    #[test]
+    fn test_footer_unix() {
+        let asm = Assembler::new("unix", false, 10).footer().build();
+        assert!(asm.contains("mov rax, 60"));
+        assert!(asm.contains("syscall"));
+    }
+
+    #[test]
+    fn test_footer_win64() {
+        let asm = Assembler::new("win64", false, 10).footer().build();
+        assert!(asm.contains("add rsp, 40"));
+        assert!(asm.contains("ret"));
+    }
+
+    #[test]
+    fn test_inc_pointer() {
+        let asm = Assembler::new("unix", false, 10).inc_pointer(3).build();
+        assert!(asm.contains("add rsi, 3"));
+    }
+
+    #[test]
+    fn test_dec_pointer() {
+        let asm = Assembler::new("win64", false, 10).dec_pointer(2).build();
+        assert!(asm.contains("sub rsi, 2"));
+    }
+
+    #[test]
+    fn test_inc_value() {
+        let asm = Assembler::new("unix", false, 10).inc_value(5).build();
+        assert!(asm.contains("add byte [rsi], 5"));
+    }
+
+    #[test]
+    fn test_dec_value() {
+        let asm = Assembler::new("win64", false, 10).dec_value(4).build();
+        assert!(asm.contains("sub byte [rsi], 4"));
+    }
+
+    #[test]
+    fn test_output_value_unix() {
+        let asm = Assembler::new("unix", false, 10).output_value(1).build();
+        assert!(asm.contains("mov rax, 1"));
+        assert!(asm.contains("syscall"));
+    }
+
+    #[test]
+    fn test_output_value_win64() {
+        let asm = Assembler::new("win64", false, 10).output_value(1).build();
+        assert!(asm.contains("call printf"));
+    }
+
+    #[test]
+    fn test_input_value_unix() {
+        let asm = Assembler::new("unix", false, 10).input_value(1).build();
+        assert!(asm.contains("mov rax, 0"));
+        assert!(asm.contains("syscall"));
+    }
+
+    #[test]
+    fn test_input_value_win64() {
+        let asm = Assembler::new("win64", false, 10).input_value(1).build();
+        assert!(asm.contains("call scanf"));
+    }
+
+    #[test]
+    fn test_loop_start_end_unix() {
+        let asm = Assembler::new("unix", false, 10)
+            .loop_start(42)
+            .loop_end(42)
+            .build();
+        assert!(asm.contains("loop_start_42:"));
+        assert!(asm.contains("loop_end_42:"));
+    }
+
+    #[test]
+    fn test_loop_start_end_win64() {
+        let asm = Assembler::new("win64", false, 10)
+            .loop_start(99)
+            .loop_end(99)
+            .build();
+        assert!(asm.contains("loop_start_99:"));
+        assert!(asm.contains("loop_end_99:"));
+    }
+}

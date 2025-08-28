@@ -1,9 +1,11 @@
 mod lexer;
 mod asm;
 mod compiler;
+mod format;
 
 use lexer::BFLexer;
 use compiler::BFCompiler;
+use format::format_code;
 use std::process::Command;
 use clap::Parser;
 
@@ -34,8 +36,12 @@ struct Args {
     tape_size: usize,
 
     /// Target architecture: unix, win64
-    #[arg(short = 'f', long = "format")]
+    #[arg(short = 'p', long = "platform")]
     target_arch: Option<String>,
+
+    /// Format Brainfuck source and exit
+    #[arg(long = "format")]
+    format: bool,
 }
 
 fn is_nasm_installed() -> bool {
@@ -56,6 +62,24 @@ fn is_ld_installed() -> bool {
 
 fn main() {
     let args = Args::parse();
+
+    if args.format {
+        let source = match std::fs::read_to_string(&args.filename) {
+            Ok(s) => s,
+            Err(e) => {
+                eprintln!("Failed to read source file: {}", e);
+                std::process::exit(1);
+            }
+        };
+        let formatted = format_code(&source);
+        
+        // write to file
+        std::fs::write(&args.filename, formatted).expect("Failed to write formatted code to file");
+        if args.verbose {
+            println!("Formatted code written to {}", args.filename);
+        }
+        std::process::exit(0);
+    }
 
     // Detect NASM and ld at start, but only if compilation will be needed
     if !args.only_asm {

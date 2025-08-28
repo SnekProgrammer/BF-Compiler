@@ -61,10 +61,13 @@ cargo build --release
 - `-A`, `--only-asm` : Only produce assembly, do not assemble or link
 - `-o <name>`, `--output <name>` : Output executable file name
 - `-t <size>`, `--tape-size <size>` : Tape size in bytes (default: 30000)
+- `-p <arch>`, `--platform <arch>` : Target architecture (`unix` or `win64`)
+- `--format` : Format Brainfuck source and print to stdout
 
 ### Example
 ```
 ./target/release/bf hello.b -o hello -v
+./target/release/bf hello.b --format
 ```
 
 ## Testing

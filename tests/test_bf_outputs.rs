@@ -35,7 +35,13 @@ fn test_bf_compiler_outputs() {
             let exe_file = format!("test_out/{}", file_stem);
             // Compile
             let status = Command::new("cargo")
-                .args(["run", "--release", "--", bf_file.to_str().unwrap(), "-o", &format!("test_out/{}", file_stem), "-f", target_arch, "-a"])
+                .args([
+                    "run", "--release", "--",
+                    bf_file.to_str().unwrap(),
+                    "-o", &format!("test_out/{}", file_stem),
+                    "-p", target_arch,
+                    "-a"
+                ])
                 .status()
                 .expect("Failed to run compiler");
             assert!(status.success(), "Compiler failed for {}", bf_file.display());
