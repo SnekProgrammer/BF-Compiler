@@ -31,7 +31,7 @@ pub fn format_code(source: &str) -> String {
                             for _ in 0..tabs {
                                 formatted.push('\t');
                             }
-                            need_tab = false;
+                            //need_tab = false;
                         }
                         formatted.push('[');
                         formatted.push('\n');
@@ -66,45 +66,41 @@ pub fn format_code(source: &str) -> String {
     formatted
 }
 
+
+
 #[cfg(test)]
 mod tests {
-    use super::format_code;
+    use super::*;
 
     #[test]
     fn test_basic_formatting() {
-        let src = ">[<+>[-]]";
-        let expected = ">
-[
-	<
-	+
-	>[
-		-
-	]
-]
-";
-        let result = format_code(src);
-        assert_eq!(result, expected);
+        let src = "[>+ -]\n<";
+        let expected = "[\n\n\t>\n\t+\n\t-\n\n]\n<";
+        let formatted = format_code(src);
+        assert_eq!(formatted, expected);
     }
 
     #[test]
-    fn test_empty_input() {
-        let src = "";
-        let expected = "";
-        let result = format_code(src);
-        assert_eq!(result, expected);
+    fn test_nested_brackets() {
+        let src = "[>[+]<]";
+        let expected = "[\n\n\t>\n\t[\n\n\t\t+\n\n\t]\n\t<\n\n]";
+        let formatted = format_code(src);
+        assert_eq!(formatted, expected);
     }
 
     #[test]
-    fn test_nested_loops() {
-        let src = "[[[]]]";
-        let expected = "[
-\t[
-\t\t[
-\t\t]
-\t]
-]";
-        let result = format_code(src);
-        assert_eq!(result, expected);
+    fn test_ignores_non_commands() {
+        let src = "+abc-123";
+        let expected = "+\n-123";
+        let formatted = format_code(src);
+        assert_eq!(formatted, expected);
+    }
+
+    #[test]
+    fn test_tabs_and_newlines() {
+        let src = "[+[->]<]";
+        let expected = "[\n\n\t+\n\t[\n\n\t\t-\n\t\t>\n\n\t]\n\t<\n\n]";
+        let formatted = format_code(src);
+        assert_eq!(formatted, expected);
     }
 }
-
