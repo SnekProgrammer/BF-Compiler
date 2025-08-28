@@ -1,5 +1,5 @@
-use crate::lexer::BFToken;
 use crate::asm::Assembler;
+use crate::lexer::BFToken;
 
 pub struct BFCompiler {
     pub tokens: Vec<BFToken>,
@@ -18,8 +18,7 @@ impl BFCompiler {
         }
     }
     pub fn compile(&self) -> String {
-        let mut assembler = Assembler::new(&self.target_arch, self.pretty, self.tape_size)
-            .header();
+        let mut assembler = Assembler::new(&self.target_arch, self.pretty, self.tape_size).header();
         let mut loop_stack = Vec::new();
         let mut loop_id = 0;
         for token in &self.tokens {
@@ -73,7 +72,12 @@ mod tests {
 
     #[test]
     fn test_decrement_value_and_output() {
-        let compiler = BFCompiler::new(vec![BFToken::DecrementValue(2), BFToken::OutputValue(1)], 90000, "unix", true);
+        let compiler = BFCompiler::new(
+            vec![BFToken::DecrementValue(2), BFToken::OutputValue(1)],
+            90000,
+            "unix",
+            true,
+        );
         let asm = compiler.compile();
         assert!(asm.contains("sub byte [rsi], 2"));
         assert!(asm.contains("sys_write"));
@@ -81,7 +85,16 @@ mod tests {
 
     #[test]
     fn test_loop_generation() {
-        let compiler = BFCompiler::new(vec![BFToken::LoopStart, BFToken::IncrementValue(1), BFToken::LoopEnd], 90000, "unix", true);
+        let compiler = BFCompiler::new(
+            vec![
+                BFToken::LoopStart,
+                BFToken::IncrementValue(1),
+                BFToken::LoopEnd,
+            ],
+            90000,
+            "unix",
+            true,
+        );
         let asm = compiler.compile();
         assert!(asm.contains("loop_start_0:"));
         assert!(asm.contains("loop_end_0:"));

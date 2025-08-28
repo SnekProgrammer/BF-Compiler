@@ -23,7 +23,10 @@ where
     I: Iterator<Item = char>,
 {
     pub fn new(input: I) -> Self {
-        BFLexer { pos: 0, input: input.peekable() }
+        BFLexer {
+            pos: 0,
+            input: input.peekable(),
+        }
     }
 
     pub fn next_token(&mut self) -> Option<BFToken> {
@@ -80,17 +83,17 @@ where
                     self.input.next();
                     self.pos += 1;
                     return Some(LoopStart);
-                },
+                }
                 ']' => {
                     self.input.next();
                     self.pos += 1;
                     return Some(LoopEnd);
-                },
+                }
                 _ => {
                     self.input.next();
                     self.pos += 1;
                     continue;
-                }, // skip non-command chars
+                } // skip non-command chars
             }
         }
         None
@@ -136,47 +139,56 @@ mod tests {
     #[test]
     fn test_combine_repeated_chars() {
         let tokens = lex("++++<<>>--");
-        assert_eq!(tokens, vec![
-            BFToken::IncrementValue(4),
-            BFToken::DecrementPointer(2),
-            BFToken::IncrementPointer(2),
-            BFToken::DecrementValue(2),
-        ]);
+        assert_eq!(
+            tokens,
+            vec![
+                BFToken::IncrementValue(4),
+                BFToken::DecrementPointer(2),
+                BFToken::IncrementPointer(2),
+                BFToken::DecrementValue(2),
+            ]
+        );
     }
 
     #[test]
     fn test_number_after_char() {
         let tokens = lex("+60 .2");
-        assert_eq!(tokens, vec![
-            BFToken::IncrementValue(60),
-            BFToken::OutputValue(2),
-        ]);
+        assert_eq!(
+            tokens,
+            vec![BFToken::IncrementValue(60), BFToken::OutputValue(2),]
+        );
     }
 
     #[test]
     fn test_loops_and_ignore_non_commands() {
         let tokens = lex("[abc+2]--");
-        assert_eq!(tokens, vec![
-            BFToken::LoopStart,
-            BFToken::IncrementValue(2),
-            BFToken::LoopEnd,
-            BFToken::DecrementValue(2),
-        ]);
+        assert_eq!(
+            tokens,
+            vec![
+                BFToken::LoopStart,
+                BFToken::IncrementValue(2),
+                BFToken::LoopEnd,
+                BFToken::DecrementValue(2),
+            ]
+        );
     }
 
     #[test]
     fn test_mixed() {
         let tokens = lex(">>+3[--.]<,1");
-        assert_eq!(tokens, vec![
-            BFToken::IncrementPointer(2),
-            BFToken::IncrementValue(3),
-            BFToken::LoopStart,
-            BFToken::DecrementValue(2),
-            BFToken::OutputValue(1),
-            BFToken::LoopEnd,
-            BFToken::DecrementPointer(1),
-            BFToken::InputValue(1),
-        ]);
+        assert_eq!(
+            tokens,
+            vec![
+                BFToken::IncrementPointer(2),
+                BFToken::IncrementValue(3),
+                BFToken::LoopStart,
+                BFToken::DecrementValue(2),
+                BFToken::OutputValue(1),
+                BFToken::LoopEnd,
+                BFToken::DecrementPointer(1),
+                BFToken::InputValue(1),
+            ]
+        );
     }
 
     #[test]

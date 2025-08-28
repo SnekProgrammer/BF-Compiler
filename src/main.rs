@@ -1,13 +1,13 @@
-mod lexer;
 mod asm;
 mod compiler;
 mod format;
+mod lexer;
 
-use lexer::BFLexer;
+use clap::Parser;
 use compiler::BFCompiler;
 use format::format_code;
+use lexer::BFLexer;
 use std::process::Command;
-use clap::Parser;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -72,7 +72,7 @@ fn main() {
             }
         };
         let formatted = format_code(&source);
-        
+
         // write to file
         std::fs::write(&args.filename, formatted).expect("Failed to write formatted code to file");
         if args.verbose {
@@ -112,11 +112,11 @@ fn main() {
             std::process::exit(1);
         }
     };
-    
+
     let mut lexer = BFLexer::new(source.chars());
     let tokens = lexer.tokenize();
     match BFLexer::<std::str::Chars>::check_syntax(&tokens) {
-        Ok(()) => {},
+        Ok(()) => {}
         Err(e) => {
             eprintln!("Syntax error: {}", e);
             std::process::exit(1);
@@ -145,7 +145,9 @@ fn main() {
         "unix" => {
             if args.only_asm {
                 if args.verbose {
-                    println!("Only assembly output requested (-A). Skipping object and executable generation.");
+                    println!(
+                        "Only assembly output requested (-A). Skipping object and executable generation."
+                    );
                 }
             } else {
                 if !is_nasm_installed() {
@@ -180,11 +182,13 @@ fn main() {
                     println!("Executable file written to {}", output_exe);
                 }
             }
-        },
+        }
         "win64" => {
             if args.only_asm {
                 if args.verbose {
-                    println!("Only assembly output requested (-A). Skipping object and executable generation.");
+                    println!(
+                        "Only assembly output requested (-A). Skipping object and executable generation."
+                    );
                 }
             } else {
                 if !is_nasm_installed() {
@@ -209,18 +213,29 @@ fn main() {
 
                 // Link with ld for win64
                 let ld_status = Command::new("ld")
-                    .args(&[&output_obj, "-o", &output_exe, "-e", "main", "-subsystem", "console", "-lmsvcrt"])
+                    .args(&[
+                        &output_obj,
+                        "-o",
+                        &output_exe,
+                        "-e",
+                        "main",
+                        "-subsystem",
+                        "console",
+                        "-lmsvcrt",
+                    ])
                     .status()
                     .expect("Failed to execute ld");
                 if !ld_status.success() {
-                    eprintln!("Error: ld failed to link the object file for win64. Ensure ld is installed and in PATH.");
+                    eprintln!(
+                        "Error: ld failed to link the object file for win64. Ensure ld is installed and in PATH."
+                    );
                     std::process::exit(1);
                 }
                 if args.verbose {
                     println!("Executable file written to {} (ld)", output_exe);
                 }
             }
-        },
+        }
         _ => {
             eprintln!("Unknown target architecture: {:?}", args.target_arch);
             std::process::exit(1);

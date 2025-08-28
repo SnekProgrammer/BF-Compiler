@@ -1,11 +1,15 @@
-use std::process::{Command, Stdio};
 use std::fs;
 use std::path::Path;
+use std::process::{Command, Stdio};
 
 /// Runs the compiler and executable for each test case in tests/*/ directories.
 #[test]
 fn test_bf_compiler_outputs() {
-    let target_arch = if cfg!(target_os = "windows") { "win64" } else { "unix" };
+    let target_arch = if cfg!(target_os = "windows") {
+        "win64"
+    } else {
+        "unix"
+    };
     let test_out_dir = Path::new("test_out");
     // Ensure test_out directory exists
     if !test_out_dir.exists() {
@@ -36,21 +40,56 @@ fn test_bf_compiler_outputs() {
             // Compile
             let status = Command::new("cargo")
                 .args([
-                    "run", "--release", "--",
+                    "run",
+                    "--release",
+                    "--",
                     bf_file.to_str().unwrap(),
-                    "-o", &format!("test_out/{}", file_stem),
-                    "-p", target_arch,
-                    "-a"
+                    "-o",
+                    &format!("test_out/{}", file_stem),
+                    "-p",
+                    target_arch,
+                    "-a",
                 ])
                 .status()
                 .expect("Failed to run compiler");
-            assert!(status.success(), "Compiler failed for {}", bf_file.display());
-            println!("{}", Path::new(&asm_file).to_str().unwrap_or("Failed to unwrap path"));
-            println!("{}", Path::new(&obj_file).to_str().unwrap_or("Failed to unwrap path"));
-            println!("{}", Path::new(&exe_file).to_str().unwrap_or("Failed to unwrap path"));
-            assert!(Path::new(&asm_file).exists(), "Missing asm file for {}", bf_file.display());
-            assert!(Path::new(&obj_file).exists(), "Missing obj file for {}", bf_file.display());
-            assert!(Path::new(&exe_file).exists(), "Missing exe file for {}", bf_file.display());
+            assert!(
+                status.success(),
+                "Compiler failed for {}",
+                bf_file.display()
+            );
+            println!(
+                "{}",
+                Path::new(&asm_file)
+                    .to_str()
+                    .unwrap_or("Failed to unwrap path")
+            );
+            println!(
+                "{}",
+                Path::new(&obj_file)
+                    .to_str()
+                    .unwrap_or("Failed to unwrap path")
+            );
+            println!(
+                "{}",
+                Path::new(&exe_file)
+                    .to_str()
+                    .unwrap_or("Failed to unwrap path")
+            );
+            assert!(
+                Path::new(&asm_file).exists(),
+                "Missing asm file for {}",
+                bf_file.display()
+            );
+            assert!(
+                Path::new(&obj_file).exists(),
+                "Missing obj file for {}",
+                bf_file.display()
+            );
+            assert!(
+                Path::new(&exe_file).exists(),
+                "Missing exe file for {}",
+                bf_file.display()
+            );
             // Run executable if input/output files exist
             if in_file.exists() && out_file.exists() {
                 let input = fs::read(&in_file).expect("Failed to read input file");
@@ -66,7 +105,15 @@ fn test_bf_compiler_outputs() {
                         Ok(output.stdout)
                     })
                     .expect("Failed to run executable");
-                assert!(output == expected, "Output mismatch for {}\nExpected (bytes): {:?}\nActual (bytes): {:?}\nExpected (chars): {}\nActual (chars): {}", bf_file.display(), expected, output, String::from_utf8_lossy(&expected), String::from_utf8_lossy(&output));
+                assert!(
+                    output == expected,
+                    "Output mismatch for {}\nExpected (bytes): {:?}\nActual (bytes): {:?}\nExpected (chars): {}\nActual (chars): {}",
+                    bf_file.display(),
+                    expected,
+                    output,
+                    String::from_utf8_lossy(&expected),
+                    String::from_utf8_lossy(&output)
+                );
             }
         }
     }

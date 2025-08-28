@@ -66,8 +66,6 @@ pub fn format_code(source: &str) -> String {
     formatted
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use super::*;
