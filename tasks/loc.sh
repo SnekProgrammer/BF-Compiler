@@ -5,15 +5,13 @@ total=$(find . -type f \( -name "*.rs" -o -name "*.b" -o -name "*.sh" \) -not -p
 # Generate shields.io badge and put it in lines.md
 badge_url="https://img.shields.io/badge/lines-$total-blue?style=flat-square"
 
-# Update README.md: remove all badge lines at the top, then insert the new badge with a single newline after
 readme="README.md"
 tmpfile="README.tmp"
 
-awk 'NR==1{title=$0; next} 
-     /^!\[Lines of code\]\(https:\/\/img\.shields\.io\/badge\/lines-[0-9]+-blue\?style=flat-square\)/{next} 
-     NF || !/^$/ {print}' "$readme" > "$tmpfile"
+# Remove any existing badge line at the top, preserving all other lines and spacing
+awk 'NR==1 && /^!\[Lines of code\]\(https:\/\/img\.shields\.io\/badge\/lines-[0-9]+-blue\?style=flat-square\)/{next} {print}' "$readme" > "$tmpfile"
 
-# Insert the badge and title at the top, with only one newline after the badge
-{ echo "![Lines of code]($badge_url)"; echo "$title"; cat "$tmpfile"; } > "$readme"
+# Insert the badge at the very top, followed by the rest of the file
+{ echo "![Lines of code]($badge_url)"; cat "$tmpfile"; } > "$readme"
 
 rm "$tmpfile"
